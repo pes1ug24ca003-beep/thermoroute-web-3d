@@ -1,0 +1,112 @@
+import { Sun, Map, Cpu, ShieldCheck, Route } from 'lucide-react';
+import { useAppStore } from './store/appStore';
+import { useOptimizeRoute } from './hooks/useOptimizeRoute';
+import { MainLayout } from './components/layout/MainLayout';
+import { type RouteRequest } from './types/api';
+
+const defaultRequest: RouteRequest = {
+  origin: { latitude: 33.4484, longitude: -112.074 },
+  destination: { latitude: 33.485, longitude: -111.87 },
+  mode: 'walking',
+  time_of_day: 12.5,
+  avoid_heat: true
+};
+
+function App() {
+  const { routeData, selectedRoute, setRouteData, setSelectedRoute } = useAppStore();
+  const { optimizeRoute, isLoading, error, resetError } = useOptimizeRoute();
+
+  const handleOptimize = async () => {
+    resetError();
+    const response = await optimizeRoute(defaultRequest);
+
+    if (response) {
+      setRouteData(response);
+      setSelectedRoute('best');
+    }
+  };
+
+  const thermalScore = routeData?.recommendation?.best_journey?.thermal_exposure ?? 0;
+  const thermalLevel = routeData?.recommendation?.best_journey?.thermal_level ?? 'LOW';
+
+  return (
+    <MainLayout>
+      <div className="flex h-full w-full flex-col gap-6 p-6">
+        <div className="grid gap-4 md:grid-cols-4">
+          {[
+            { label: 'Route Health', value: thermalLevel, icon: Route },
+            { label: 'Thermal Exposure', value: `${thermalScore.toFixed(1)} / 100`, icon: Sun },
+            { label: 'City Context', value: 'Phoenix', icon: Map },
+            { label: 'AI Forecast', value: 'Stable', icon: Cpu }
+          ].map(({ label, value, icon: Icon }) => (
+            <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-glow">
+              <div className="mb-3 flex items-center justify-between text-slate-400">
+                <span className="text-xs uppercase tracking-[0.2em]">{label}</span>
+                <Icon className="h-4 w-4 text-amber-400" />
+              </div>
+              <div className="text-2xl font-semibold text-white">{value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid flex-1 gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+          <div className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <div className="text-xs uppercase tracking-[0.25em] text-slate-400">3D Route Intelligence</div>
+                <h2 className="mt-2 text-2xl font-semibold text-white">ThermoRoute 2.0 Overview</h2>
+              </div>
+              <button
+                onClick={handleOptimize}
+                className="rounded-xl border border-amber-500/50 bg-amber-500/15 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-500/25"
+              >
+                {isLoading ? 'Optimizing...' : 'Find Safe Route'}
+              </button>
+            </div>
+
+            <div className="flex h-[440px] items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/80">
+              <div className="text-center">
+                <ShieldCheck className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
+                <div className="text-lg font-medium text-white">3D city scene ready</div>
+                <div className="mt-2 text-sm text-slate-400">
+                  {routeData
+                    ? `Selected route: ${selectedRoute}`
+                    : 'Run thermal optimization to visualize route exposure and urban conditions.'}
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+            <div className="mb-4 text-xs uppercase tracking-[0.25em] text-slate-400">AI Insight</div>
+            <div className="space-y-4 text-sm text-slate-300">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                <div className="mb-2 text-xs uppercase tracking-[0.2em] text-amber-300">Recommendation</div>
+                <p>
+                  {routeData?.recommendation?.best_journey?.thermal_explanation ??
+                    'Thermal guidance will load here once the backend response is received.'}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                <div className="mb-2 text-xs uppercase tracking-[0.2em] text-emerald-300">Route summary</div>
+                <ul className="space-y-2 text-slate-300">
+                  <li>Travel time: {routeData?.recommendation?.best_journey?.travel_time_min ?? '--'} min</li>
+                  <li>Distance: {routeData?.recommendation?.best_journey?.distance_km ?? '--'} km</li>
+                  <li>Exposure: {thermalScore.toFixed(1)} / 100</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
+
+export default App;
