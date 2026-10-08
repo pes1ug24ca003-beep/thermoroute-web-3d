@@ -9,25 +9,31 @@ export function useOptimizeRoute() {
   const setLoadingRoute = useAppStore((state) => state.setLoadingRoute);
   const setErrorMessage = useAppStore((state) => state.setErrorMessage);
 
-  const optimizeRoute = useCallback(async (payload: RouteRequest): Promise<OptimizeResponse | null> => {
-    setIsLoading(true);
-    setLoadingRoute(true);
-    setError(null);
-    setErrorMessage(null);
+  const optimizeRoute = useCallback(
+    async (payload: RouteRequest): Promise<OptimizeResponse | null> => {
+      setIsLoading(true);
+      setLoadingRoute(true);
+      setError(null);
+      setErrorMessage(null);
 
-    try {
-      const response = await optimizeRouteApi(payload);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to connect to the ThermoRoute backend.';
-      setError(message);
-      setErrorMessage(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-      setLoadingRoute(false);
-    }
-  }, [setErrorMessage, setLoadingRoute]);
+      try {
+        const response = await optimizeRouteApi(payload);
+        if (response.status === 'error') {
+          throw new Error('Backend returned an error response');
+        }
+        return response;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unable to connect to the ThermoRoute backend.';
+        setError(message);
+        setErrorMessage(message);
+        return null;
+      } finally {
+        setIsLoading(false);
+        setLoadingRoute(false);
+      }
+    },
+    [setErrorMessage, setLoadingRoute]
+  );
 
   const resetError = useCallback(() => {
     setError(null);
