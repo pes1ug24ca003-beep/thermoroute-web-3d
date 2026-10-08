@@ -1,43 +1,12 @@
-import { useCallback, useState } from 'react';
-import { useAppStore } from '../store/appStore';
-import { optimizeRouteApi } from '../services/api';
-import { type RouteRequest, type OptimizeResponse } from '../types/api';
+export const THERMAL_THRESHOLDS = {
+  LOW: { min: 0, max: 29.99, color: '#2e9b4b' },
+  MODERATE: { min: 30, max: 49.99, color: '#eab308' },
+  HIGH: { min: 50, max: 69.99, color: '#f97316' },
+  EXTREME: { min: 70, max: 100, color: '#ef4444' }
+} as const;
 
-export function useOptimizeRoute() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const setLoadingRoute = useAppStore((state) => state.setLoadingRoute);
-  const setErrorMessage = useAppStore((state) => state.setErrorMessage);
-
-  const optimizeRoute = useCallback(async (payload: RouteRequest): Promise<OptimizeResponse | null> => {
-    setIsLoading(true);
-    setLoadingRoute(true);
-    setError(null);
-    setErrorMessage(null);
-
-    try {
-      const response = await optimizeRouteApi(payload);
-      return response;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to connect to the ThermoRoute backend.';
-      setError(message);
-      setErrorMessage(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-      setLoadingRoute(false);
-    }
-  }, [setErrorMessage, setLoadingRoute]);
-
-  const resetError = useCallback(() => {
-    setError(null);
-    setErrorMessage(null);
-  }, [setErrorMessage]);
-
-  return {
-    optimizeRoute,
-    isLoading,
-    error,
-    resetError
-  };
-}
+export const appConfig = {
+  apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+  cityName: 'Bengaluru',
+  timeOfDayDefault: 12.5
+} as const;
