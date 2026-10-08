@@ -1,22 +1,43 @@
-import axios from 'axios';
+import { useCallback, useState } from 'react';
+import { useAppStore } from '../store/appStore';
+import { optimizeRouteApi } from '../services/api';
 import { type RouteRequest, type OptimizeResponse } from '../types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+export function useOptimizeRoute() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const setLoadingRoute = useAppStore((state) => state.setLoadingRoute);
+  const setErrorMessage = useAppStore((state) => state.setErrorMessage);
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 20000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+  const optimizeRoute = useCallback(async (payload: RouteRequest): Promise<OptimizeResponse | null> => {
+    setIsLoading(true);
+    setLoadingRoute(true);
+    setError(null);
+    setErrorMessage(null);
 
-export const optimizeRouteApi = async (payload: RouteRequest): Promise<OptimizeResponse> => {
-  const response = await api.post('/api/optimize', payload);
-  return response.data as OptimizeResponse;
-};
+    try {
+      const response = await optimizeRouteApi(payload);
+      return response;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to connect to the ThermoRoute backend.';
+      setError(message);
+      setErrorMessage(message);
+      return null;
+    } finally {
+      setIsLoading(false);
+      setLoadingRoute(false);
+    }
+  }, [setErrorMessage, setLoadingRoute]);
 
-export const healthCheckApi = async () => {
-  const response = await api.get('/api/health');
-  return response.data;
-};
+  const resetError = useCallback(() => {
+    setError(null);
+    setErrorMessage(null);
+  }, [setErrorMessage]);
+
+  return {
+    optimizeRoute,
+    isLoading,
+    error,
+    resetError
+  };
+}

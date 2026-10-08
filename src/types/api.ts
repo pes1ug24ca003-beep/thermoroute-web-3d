@@ -1,48 +1,67 @@
-import { create } from 'zustand';
-import { type OptimizeResponse } from '../types/api';
+export type RiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'EXTREME';
 
-interface AppState {
-  activeSidebar: string;
-  routeData: OptimizeResponse | null;
-  selectedRoute: string;
-  selectedSegment: number | null;
-  cameraMode: 'orbit' | 'fly-through' | 'focus-route';
-  timeOfDay: number;
-  showHeatLayer: boolean;
-  showBuildings: boolean;
-  showTrees: boolean;
-  isPanelOpen: boolean;
-  isLoadingRoute: boolean;
-  errorMessage: string | null;
-  setActiveSidebar: (item: string) => void;
-  setRouteData: (data: OptimizeResponse) => void;
-  setSelectedRoute: (route: string) => void;
-  setSelectedSegment: (segment: number | null) => void;
-  setCameraMode: (mode: AppState['cameraMode']) => void;
-  setTimeOfDay: (time: number) => void;
-  setLoadingRoute: (loading: boolean) => void;
-  setErrorMessage: (message: string | null) => void;
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  activeSidebar: 'overview',
-  routeData: null,
-  selectedRoute: 'best',
-  selectedSegment: null,
-  cameraMode: 'orbit',
-  timeOfDay: 12.5,
-  showHeatLayer: true,
-  showBuildings: true,
-  showTrees: true,
-  isPanelOpen: true,
-  isLoadingRoute: false,
-  errorMessage: null,
-  setActiveSidebar: (item) => set({ activeSidebar: item }),
-  setRouteData: (data) => set({ routeData: data }),
-  setSelectedRoute: (route) => set({ selectedRoute: route }),
-  setSelectedSegment: (segment) => set({ selectedSegment: segment }),
-  setCameraMode: (mode) => set({ cameraMode: mode }),
-  setTimeOfDay: (time) => set({ timeOfDay: time }),
-  setLoadingRoute: (loading) => set({ isLoadingRoute: loading }),
-  setErrorMessage: (message) => set({ errorMessage: message })
-}));
+export interface RouteRequest {
+  origin: Coordinates;
+  destination: Coordinates;
+  mode: 'walking' | 'cycling' | 'driving';
+  time_of_day: number;
+  avoid_heat: boolean;
+}
+
+export interface Segment {
+  latitude: number;
+  longitude: number;
+  temperature: number;
+  heat_index: number;
+  duration_minutes: number;
+  environment_source: string;
+}
+
+export interface HeatIntelligence {
+  api_data: {
+    source: string;
+    temperature_c_avg: number;
+    heat_index_c_avg: number;
+    ghi_avg: number;
+  };
+  calculated: {
+    thermal_exposure: number;
+    thermal_level: RiskLevel;
+  };
+}
+
+export interface Journey {
+  route_id: string;
+  travel_time_min: number;
+  distance_km: number;
+  thermal_exposure: number;
+  thermal_level: RiskLevel;
+  thermal_explanation: string;
+  geometry: {
+    type: 'LineString';
+    coordinates: Array<[number, number]>;
+  };
+  origin_lat: number;
+  origin_lon: number;
+  destination_lat: number;
+  destination_lon: number;
+  segments: Segment[];
+  heat_intelligence: HeatIntelligence;
+}
+
+export interface Recommendation {
+  found: boolean;
+  best_journey: Journey;
+  options: Journey[];
+  all_routes: Journey[];
+}
+
+export interface OptimizeResponse {
+  status: 'success' | 'error';
+  recommendation: Recommendation;
+}

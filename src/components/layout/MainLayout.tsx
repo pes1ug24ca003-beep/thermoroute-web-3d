@@ -1,12 +1,15 @@
-export const THERMAL_THRESHOLDS = {
-  LOW: { min: 0, max: 29.99, color: '#2e9b4b' },
-  MODERATE: { min: 30, max: 49.99, color: '#eab308' },
-  HIGH: { min: 50, max: 69.99, color: '#f97316' },
-  EXTREME: { min: 70, max: 100, color: '#ef4444' }
-} as const;
+import type { PropsWithChildren } from 'react';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
 
-export const appConfig = {
-  apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
-  cityName: 'Phoenix',
-  timeOfDayDefault: 12.5
-};
+export function MainLayout({ children }: PropsWithChildren) {
+  return (
+    <div className="flex h-screen bg-slate-950 text-slate-100">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header />
+        <main className="flex-1 overflow-hidden">{children}</main>
+      </div>
+    </div>
+  );
+}
