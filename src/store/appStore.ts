@@ -1,69 +1,65 @@
 import { create } from 'zustand';
-import { type OptimizeResponse, type RouteRequest } from '../types/api';
+import { type OptimizeResponse } from '../types/api';
 
 interface AppState {
-  // Location state
-  originLocation: { name: string; coordinates: { latitude: number; longitude: number } } | null;
-  destinationLocation: { name: string; coordinates: { latitude: number; longitude: number } } | null;
-  
-  // Route state
-  routeData: OptimizeResponse | null;
-  selectedRoute: 'best' | 'option1' | 'option2' | null;
-  selectedSegment: number | null;
-  
-  // UI state
   activeSidebar: string;
+  routeData: OptimizeResponse | null;
+  selectedRoute: string;
+  selectedSegment: number | null;
   cameraMode: 'orbit' | 'fly-through' | 'focus-route';
-  timeOfDay: number; // 8-18 hours
+  timeOfDay: number;
   showHeatLayer: boolean;
   showBuildings: boolean;
-  showSegmentMarkers: boolean;
+  showTrees: boolean;
   isPanelOpen: boolean;
   isLoadingRoute: boolean;
   errorMessage: string | null;
-  
-  // What-if state
+  originLocation: { name: string; coordinates: { latitude: number; longitude: number } } | null;
+  destinationLocation: { name: string; coordinates: { latitude: number; longitude: number } } | null;
   whatIfMode: boolean;
   whatIfParams: {
     departureTime: number;
-    walkingSpeed: number; // km/h
-    maxExtraTime: number; // minutes
-    thermalBudget: number; // 0-100
+    walkingSpeed: number;
+    maxExtraTime: number;
+    thermalBudget: number;
   };
-  
-  // Actions
-  setOriginLocation: (location: { name: string; coordinates: { latitude: number; longitude: number } } | null) => void;
-  setDestinationLocation: (location: { name: string; coordinates: { latitude: number; longitude: number } } | null) => void;
-  setRouteData: (data: OptimizeResponse | null) => void;
-  setSelectedRoute: (route: 'best' | 'option1' | 'option2' | null) => void;
-  setSelectedSegment: (segment: number | null) => void;
   setActiveSidebar: (item: string) => void;
+  setRouteData: (data: OptimizeResponse | null) => void;
+  setSelectedRoute: (route: string) => void;
+  setSelectedSegment: (segment: number | null) => void;
   setCameraMode: (mode: AppState['cameraMode']) => void;
   setTimeOfDay: (time: number) => void;
-  setShowHeatLayer: (show: boolean) => void;
-  setShowBuildings: (show: boolean) => void;
-  setShowSegmentMarkers: (show: boolean) => void;
   setLoadingRoute: (loading: boolean) => void;
   setErrorMessage: (message: string | null) => void;
+  setOriginLocation: (location: { name: string; coordinates: { latitude: number; longitude: number } } | null) => void;
+  setDestinationLocation: (location: { name: string; coordinates: { latitude: number; longitude: number } } | null) => void;
   setWhatIfMode: (mode: boolean) => void;
   setWhatIfParams: (params: Partial<AppState['whatIfParams']>) => void;
+  setShowHeatLayer: (show: boolean) => void;
+  setShowBuildings: (show: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  originLocation: null,
-  destinationLocation: null,
-  routeData: null,
-  selectedRoute: null,
-  selectedSegment: null,
   activeSidebar: 'overview',
+  routeData: null,
+  selectedRoute: 'best',
+  selectedSegment: null,
   cameraMode: 'orbit',
-  timeOfDay: 12,
+  timeOfDay: 12.5,
   showHeatLayer: true,
   showBuildings: true,
-  showSegmentMarkers: true,
+  showTrees: true,
   isPanelOpen: true,
   isLoadingRoute: false,
   errorMessage: null,
+  originLocation: {
+    name: 'PES University',
+    coordinates: { latitude: 12.8354, longitude: 77.6245 }
+  },
+  destinationLocation: {
+    name: 'Cubbon Park',
+    coordinates: { latitude: 12.9352, longitude: 77.5948 }
+  },
   whatIfMode: false,
   whatIfParams: {
     departureTime: 12,
@@ -71,19 +67,18 @@ export const useAppStore = create<AppState>((set) => ({
     maxExtraTime: 10,
     thermalBudget: 50
   },
-  setOriginLocation: (location) => set({ originLocation: location }),
-  setDestinationLocation: (location) => set({ destinationLocation: location }),
+  setActiveSidebar: (item) => set({ activeSidebar: item }),
   setRouteData: (data) => set({ routeData: data }),
   setSelectedRoute: (route) => set({ selectedRoute: route }),
   setSelectedSegment: (segment) => set({ selectedSegment: segment }),
-  setActiveSidebar: (item) => set({ activeSidebar: item }),
   setCameraMode: (mode) => set({ cameraMode: mode }),
   setTimeOfDay: (time) => set({ timeOfDay: time }),
-  setShowHeatLayer: (show) => set({ showHeatLayer: show }),
-  setShowBuildings: (show) => set({ showBuildings: show }),
-  setShowSegmentMarkers: (show) => set({ showSegmentMarkers: show }),
   setLoadingRoute: (loading) => set({ isLoadingRoute: loading }),
   setErrorMessage: (message) => set({ errorMessage: message }),
+  setOriginLocation: (location) => set({ originLocation: location }),
+  setDestinationLocation: (location) => set({ destinationLocation: location }),
   setWhatIfMode: (mode) => set({ whatIfMode: mode }),
-  setWhatIfParams: (params) => set((state) => ({ whatIfParams: { ...state.whatIfParams, ...params } }))
+  setWhatIfParams: (params) => set((state) => ({ whatIfParams: { ...state.whatIfParams, ...params } })),
+  setShowHeatLayer: (show) => set({ showHeatLayer: show }),
+  setShowBuildings: (show) => set({ showBuildings: show })
 }));
